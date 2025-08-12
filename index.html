@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENSEi - GOOSE</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Use the Inter font family */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom styles for the card grid */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            /* Center content vertically */
+            align-items: center;
+            /* Center content horizontally */
+            text-align: center;
+            aspect-ratio: 1 / 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-position: center;
+            background-size: cover;
+            border: 2px solid #292929;
+
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800">GOOSE</h1>
+            <p class="mt-3 text-lg text-gray-600">Gamified Open-sourced Opportunities for Spatial Education.</p>
+            <p class="mt-4 max-w-6xl mx-auto text-gray-500">
+                GOOSE is a paper-based co-design toolkit for school teachers and educators to collaboratively create
+                activities for immersive, multisensory learning spaces.
+                The toolkit combines playful exploration and structured templates to guide participants from idea
+                generation to complete activity plans.
+            </p>
+             <p class="mt-4 max-w-6xl mx-auto text-gray-500">
+                Originally developed as part of <a href="https://www.sensei.space/">SENSEi</a>, GOOSE has been used in co-design workshops with dozens of
+                educators to design activities that are engaging, inclusive, and adaptable to diverse classroom needs.
+            </p>
+            <div class="mt-6 flex justify-center gap-4">
+                <a href="https://github.com/sensei-space/GOOSE/"
+                    class="bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Downloads</a>
+                <a href="https://github.com/sensei-space/GOOSE/blob/main/LICENSE"
+                    class="bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">License</a>
+                <a href="https://github.com/sensei-space/GOOSE/blob/main/README.md"
+                    class="bg-gray-800 text-white font-semibold py-2 px-6 rounded-lg hover:bg-gray-700 transition-colors duration-300">Readme</a>
+            </div>
+        </header>
+
+        <!-- Filters and Search -->
+        <div class="mb-10 flex flex-col md:flex-row gap-4 justify-center items-center">
+            <!--<div class="relative w-full max-w-xs">
+                <input type="text" id="searchInput" placeholder="Search cards..."
+                    class="w-full py-2.5 px-4 rounded-full border-2 border-gray-200 focus:outline-none focus:border-blue-400 transition-colors">
+            </div>-->
+            <div id="categoryFilters" class="flex flex-wrap justify-center gap-2">
+                <!-- Filter buttons will be inserted here by JS -->
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <main id="cardGrid" class="card-grid">
+            <!-- Cards will be inserted here by JS -->
+        </main>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-8 mt-12">
+        <p class="text-gray-500">&copy; <span id="year"></span> SENSEi. All Rights Reserved.</p>
+    </footer>
+
+    <script>
+
+        let cards_categories = [
+            { id: "objective", number: 11 },
+            { id: "sense", number: 11 },
+            { id: "stimulus", number: 11 },
+            { id: "interaction", number: 11 },
+            { id: "context", number: 11 },
+            { id: "twists", number: 23 },
+        ];
+
+
+        const locale = 'en'; // Example locale
+        let cards = [];
+
+        // --- GENERATE CARD DATA DYNAMICALLY ---
+        cards_categories.forEach(categoryInfo => {
+            cards.push({
+                id: `${categoryInfo.id}-front`,
+                category: categoryInfo.id,
+                image: `./downloads/cards/${locale}/front_${categoryInfo.id}.svg`,
+            });
+            cards.push({
+                id: `${categoryInfo.id}-0`,
+                category: categoryInfo.id,
+                image: `./downloads/cards/${locale}/rear_${categoryInfo.id}.svg`,
+            });
+            for (let i = 1; i <= categoryInfo.number; i++) {
+                cards.push({
+                    id: `${categoryInfo.id}-${i}`,
+                    category: categoryInfo.id,
+                    image: `./downloads/cards/${locale}/rear_${categoryInfo.id}_${i}.svg`,
+                });
+            }
+        });
+
+
+        // --- DOM Elements ---
+        const cardGrid = document.getElementById('cardGrid');
+        //const searchInput = document.getElementById('searchInput');
+        const categoryFiltersContainer = document.getElementById('categoryFilters');
+        const yearSpan = document.getElementById('year');
+
+        // --- State ---
+        let currentCategory = 'All cards';
+        let currentSearchTerm = '';
+
+        // --- RENDER FUNCTIONS ---
+
+        /**
+         * Renders the cards based on the current filters
+         */
+        function renderCards() {
+            cardGrid.innerHTML = ''; // Clear existing cards
+
+            const filteredCards = cards.filter(card => {
+                const matchesCategory = currentCategory === 'All cards' || card.category === currentCategory;
+                // Search now checks category name, since there is no visible name on the card
+                const matchesSearch = card.category.toLowerCase().includes(currentSearchTerm.toLowerCase());
+                return matchesCategory && matchesSearch;
+            });
+
+            if (filteredCards.length === 0) {
+                cardGrid.innerHTML = `<p class="text-gray-500 col-span-full text-center">No cards found. Try a different filter or search term.</p>`;
+                return;
+            }
+
+            filteredCards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card`;
+                // Set the background image
+                cardElement.setAttribute('style', `background-image: url('${card.image}');`);
+                // No icon or name is added to the innerHTML
+                cardGrid.appendChild(cardElement);
+            });
+        }
+
+        /**
+         * Renders the category filter buttons
+         */
+        function renderFilterButtons() {
+            const categories = ['All cards', ...cards_categories.map(c => c.id)];
+            categoryFiltersContainer.innerHTML = ''; // Clear existing buttons
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.textContent = category.charAt(0).toUpperCase() + category.slice(1); // Capitalize
+                button.dataset.category = category;
+                button.className = `py-2 px-4 rounded-full font-semibold text-sm transition-colors duration-300 ${currentCategory === category
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-200 border'
+                    }`;
+                categoryFiltersContainer.appendChild(button);
+            });
+        }
+
+
+        // --- EVENT LISTENERS ---
+
+        // Listen for clicks on the filter button container
+        categoryFiltersContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                currentCategory = e.target.dataset.category;
+                renderFilterButtons(); // Re-render buttons to update active state
+                renderCards();
+            }
+        });
+
+
+        // Listen for input in the search bar
+        /*searchInput.addEventListener('input', (e) => {
+            currentSearchTerm = e.target.value;
+            renderCards();
+        });*/
+
+
+        // --- INITIALIZATION ---
+
+        // Set the current year in the footer
+        yearSpan.textContent = new Date().getFullYear();
+
+        // Initial render of the page
+        renderFilterButtons();
+        renderCards();
+
+    </script>
+</body>
+
+</html>
